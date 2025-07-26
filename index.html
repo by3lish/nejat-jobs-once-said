@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nejat Jobs once said...</title>
+  <style>
+    :root {
+      --bg: #111;
+      --fg: #e0e0e0;
+      --shadow-light: rgba(255, 255, 255, 0.05);
+      --shadow-dark: rgba(0, 0, 0, 0.5);
+      --accent: #222;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    input, button {
+      width: 90%;
+      max-width: 600px;
+      padding: 12px;
+      font-size: 1.1em;
+      margin: 10px 0;
+      box-sizing: border-box;
+      color: var(--fg);
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      outline: none;
+      box-shadow: 5px 5px 15px var(--shadow-dark),
+                  -5px -5px 15px var(--shadow-light);
+      transition: all 0.3s ease;
+    }
+
+    input:focus, button:hover {
+      box-shadow: inset 5px 5px 15px var(--shadow-dark),
+                  inset -5px -5px 15px var(--shadow-light);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .canvas-container {
+      width: 100%;
+      max-width: 800px;
+      margin-top: 20px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 10px 10px 30px var(--shadow-dark),
+                  -10px -10px 30px var(--shadow-light);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      input, button {
+        font-size: 1em;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Nejat İşler deyir ki...</h2>
+  <input type="text" id="userText" placeholder="Mesajınızı yazın..." />
+  <div class="canvas-container">
+    <canvas id="canvas" width="1536" height="1024"></canvas>
+  </div>
+  <button onclick="downloadImage()">Yüklə</button>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.src = "./nejatjobs.png";
+
+    const safeX = 114;
+    const safeY = 250;
+    const safeWidth = 797;
+    const safeHeight = 500;
+
+    img.onload = () => drawText(document.getElementById("userText").value);
+
+    document.getElementById("userText").addEventListener("input", (e) => {
+      drawText(e.target.value);
+    });
+
+    function drawText(text) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      if (!text.trim()) return;
+
+      let fontSize = 80;
+      let lines, lineHeight;
+
+      do {
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        lines = wrapText(ctx, text, safeWidth);
+        lineHeight = fontSize * 1.2;
+        fontSize--;
+      } while ((lines.length * lineHeight > safeHeight || longestLineWidth(lines) > safeWidth) && fontSize > 10);
+
+      const totalTextHeight = lines.length * lineHeight;
+      const startY = safeY + (safeHeight - totalTextHeight) / 2;
+
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
+      lines.forEach((line, i) => {
+        ctx.fillText(line, safeX + safeWidth / 2, startY + i * lineHeight);
+      });
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      const words = text.split(" ");
+      const lines = [];
+      let line = "";
+
+      for (let word of words) {
+        const testLine = line + word + " ";
+        const width = ctx.measureText(testLine).width;
+        if (width > maxWidth && line !== "") {
+          lines.push(line.trim());
+          line = word + " ";
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line.trim());
+      return lines;
+    }
+
+    function longestLineWidth(lines) {
+      return Math.max(...lines.map((line) => ctx.measureText(line).width));
+    }
+
+    function downloadImage() {
+      const link = document.createElement("a");
+      link.download = "nejatjobs_once_said.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+</body>
+</html>
